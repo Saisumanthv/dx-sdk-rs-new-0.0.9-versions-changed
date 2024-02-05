@@ -1,6 +1,6 @@
 [package]
 name = "dharitri-wasm"
-version = "0.6.1"
+version = "0.6.3"
 edition = "2018"
 
 authors = ["Andrei Marinica <andrei.marinica@dharitri.com>", "Dharitri Network <contact@dharitri.com>"]
@@ -13,6 +13,9 @@ description = "Dharitri WebAssembly smart contract API"
 keywords = ["dharitri", "wasm", "webassembly", "blockchain", "contract"]
 categories = ["no-std", "wasm", "cryptography::cryptocurrencies", "development-tools"]
 
+[features]
+legacy-nft-transfer = []
+
 [dependencies]
 wee_alloc = "0.4"
 arrayvec = { version = "0.5.2", default-features = false, features = ["array-sizes-33-128", "array-sizes-129-255"] }
@@ -20,6 +23,6 @@ hashbrown = "0.9.1"
 hex-literal = "0.3.1"
 
 [dependencies.dharitri-codec]
-version = "0.2.4"
+version = "0.2.5"
 path = "../dharitri-codec"
 features = ["derive"]
