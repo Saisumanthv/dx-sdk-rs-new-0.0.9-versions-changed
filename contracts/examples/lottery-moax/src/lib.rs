@@ -76,7 +76,7 @@ pub trait Lottery {
 	) -> SCResult<()> {
 		require!(!lottery_name.is_empty(), "Name can't be empty!");
 
-		let timestamp = self.get_block_timestamp();
+		let timestamp = self.blockchain().get_block_timestamp();
 
 		let total_tickets = opt_total_tickets.unwrap_or(MAX_TICKETS);
 		let deadline = opt_deadline.unwrap_or_else(|| timestamp + THIRTY_DAYS_IN_SECONDS);
@@ -168,7 +168,7 @@ pub trait Lottery {
 
 		let info = self.get_lottery_info(&lottery_name);
 
-		if self.get_block_timestamp() > info.deadline || info.tickets_left == 0 {
+		if self.blockchain().get_block_timestamp() > info.deadline || info.tickets_left == 0 {
 			return Status::Ended;
 		}
 
@@ -181,7 +181,7 @@ pub trait Lottery {
 		payment: &BigUint,
 	) -> SCResult<()> {
 		let mut info = self.get_lottery_info(&lottery_name);
-		let caller = self.get_caller();
+		let caller = self.blockchain().get_caller();
 
 		require!(
 			info.whitelist.is_empty() || info.whitelist.contains(&caller),
@@ -218,7 +218,7 @@ pub trait Lottery {
 		if info.current_ticket_number > 0 {
 			let mut prev_winning_tickets: Vec<u32> = Vec::new();
 
-			let seed = self.get_block_random_seed();
+			let seed = self.blockchain().get_block_random_seed();
 			let mut rand = Random::new(*seed);
 
 			// if there are less tickets that the distributed prize pool,
@@ -235,6 +235,8 @@ pub trait Lottery {
 			// distribute to the first place last. Laws of probability say that order doesn't matter.
 			// this is done to mitigate the effects of BigUint division leading to "spare" prize money being left out at times
 			// 1st place will get the spare money instead.
+			let total_prize = info.prize_pool.clone();
+
 			for i in (0..for_loop_end).rev() {
 				let mut winning_ticket_id: u32;
 
@@ -250,8 +252,8 @@ pub trait Lottery {
 
 						if i != 0 {
 							prize =
-								BigUint::from(info.prize_distribution[i] as u32)
-									* info.prize_pool.clone() / BigUint::from(PERCENTAGE_TOTAL as u32);
+								&BigUint::from(info.prize_distribution[i] as u32)
+									* &total_prize / BigUint::from(PERCENTAGE_TOTAL as u32);
 						} else {
 							prize = info.prize_pool.clone();
 						}

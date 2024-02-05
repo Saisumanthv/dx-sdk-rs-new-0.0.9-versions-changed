@@ -15,6 +15,8 @@ pub struct Auction<BigUint: BigUintApi> {
 	pub original_owner: Address,
 	pub current_bid: BigUint,
 	pub current_winner: Address,
+	pub marketplace_cut_percentage: BigUint,
+	pub creator_royalties_percentage: BigUint,
 }
 
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, Clone)]
@@ -72,7 +74,7 @@ pub trait DctNftMarketplace {
 			"Token is not an NFT"
 		);
 		require!(
-			!self.is_up_for_auction(&nft_type, nft_nonce),
+			!self.is_already_up_for_auction(&nft_type, nft_nonce),
 			"There is already an auction for that token"
 		);
 		require!(
@@ -80,13 +82,25 @@ pub trait DctNftMarketplace {
 			"Min bid can't be 0 or higher than max bid"
 		);
 		require!(
-			deadline > self.get_block_timestamp(),
+			deadline > self.blockchain().get_block_timestamp(),
 			"Deadline can't be in the past"
 		);
 
-		let accepted_payment_nft_nonce = opt_accepted_payment_token_nonce
-			.into_option()
-			.unwrap_or_default();
+		let marketplace_cut_percentage = self.bid_cut_percentage().get();
+		let creator_royalties_percentage = self.get_nft_info(&nft_type, nft_nonce).royalties;
+
+		require!(
+			&marketplace_cut_percentage + &creator_royalties_percentage < PERCENTAGE_TOTAL,
+			"Marketplace cut plus royalties exceeds 100%"
+		);
+
+		let accepted_payment_nft_nonce = if accepted_payment_token.is_moax() {
+			0
+		} else {
+			opt_accepted_payment_token_nonce
+				.into_option()
+				.unwrap_or_default()
+		};
 
 		self.auction_for_token(&nft_type, nft_nonce).set(&Auction {
 			payment_token: DctToken {
@@ -96,9 +110,11 @@ pub trait DctNftMarketplace {
 			min_bid,
 			max_bid,
 			deadline,
-			original_owner: self.get_caller(),
+			original_owner: self.blockchain().get_caller(),
 			current_bid: BigUint::zero(),
 			current_winner: Address::zero(),
+			marketplace_cut_percentage,
+			creator_royalties_percentage,
 		});
 
 		Ok(())
@@ -108,13 +124,13 @@ pub trait DctNftMarketplace {
 	#[endpoint]
 	fn bid(&self, nft_type: TokenIdentifier, nft_nonce: u64) -> SCResult<()> {
 		require!(
-			self.is_up_for_auction(&nft_type, nft_nonce),
+			self.is_already_up_for_auction(&nft_type, nft_nonce),
 			"Token is not up for auction"
 		);
 
 		let (payment_amount, payment_token) = self.call_value().payment_token_pair();
 		let payment_token_nonce = self.call_value().dct_token_nonce();
-		let caller = self.get_caller();
+		let caller = self.blockchain().get_caller();
 		let mut auction = self.auction_for_token(&nft_type, nft_nonce).get();
 
 		require!(
@@ -122,7 +138,7 @@ pub trait DctNftMarketplace {
 			"Can't bid on your own token"
 		);
 		require!(
-			self.get_block_timestamp() < auction.deadline,
+			self.blockchain().get_block_timestamp() < auction.deadline,
 			"Auction ended already"
 		);
 		require!(
@@ -146,13 +162,12 @@ pub trait DctNftMarketplace {
 
 		// refund losing bid
 		if auction.current_winner != Address::zero() {
-			let data = self.data_or_empty_if_sc(&auction.current_winner, b"bid refund");
-			self.send().direct_dct_nft_via_transfer_exec(
+			self.transfer_dct(
 				&auction.current_winner,
-				&auction.payment_token.token_type.as_dct_identifier(),
+				&auction.payment_token.token_type,
 				auction.payment_token.nonce,
 				&auction.current_bid,
-				data,
+				b"bid refund",
 			);
 		}
 
@@ -167,76 +182,63 @@ pub trait DctNftMarketplace {
 	#[endpoint(endAuction)]
 	fn end_auction(&self, nft_type: TokenIdentifier, nft_nonce: u64) -> SCResult<()> {
 		require!(
-			self.is_up_for_auction(&nft_type, nft_nonce),
+			self.is_already_up_for_auction(&nft_type, nft_nonce),
 			"Token is not up for auction"
 		);
 
 		let auction = self.auction_for_token(&nft_type, nft_nonce).get();
 
 		require!(
-			self.get_block_timestamp() > auction.deadline || auction.current_bid == auction.max_bid,
+			self.blockchain().get_block_timestamp() > auction.deadline
+				|| auction.current_bid == auction.max_bid,
 			"Auction deadline has not passed nor is the current bid equal to max bid"
 		);
 
 		self.auction_for_token(&nft_type, nft_nonce).clear();
 
 		if auction.current_winner != Address::zero() {
-			let nft_info = self.get_dct_token_data(
-				&self.get_sc_address(),
-				nft_type.as_dct_identifier(),
-				nft_nonce,
-			);
+			let nft_info = self.get_nft_info(&nft_type, nft_nonce);
 
-			let percentage_cut = self.bid_cut_percentage().get();
-			let creator_royalties =
-				self.calculate_cut_amount(&auction.current_bid, &nft_info.royalties);
-
-			// don't take anything if bid_cut would make it so the seller gets nothing
-			let bid_cut_amount =
-				if &percentage_cut + &nft_info.royalties < BigUint::from(PERCENTAGE_TOTAL) {
-					self.calculate_cut_amount(&auction.current_bid, &percentage_cut)
-				} else {
-					BigUint::zero()
-				};
-
+			let creator_royalties = self
+				.calculate_cut_amount(&auction.current_bid, &auction.creator_royalties_percentage);
+			let bid_cut_amount = self
+				.calculate_cut_amount(&auction.current_bid, &auction.marketplace_cut_percentage);
 			let seller_amount_to_send =
 				&auction.current_bid - &creator_royalties - bid_cut_amount.clone();
 
-			let token = auction.payment_token.token_type.as_dct_identifier();
+			let token_id = &auction.payment_token.token_type;
 			let nonce = auction.payment_token.nonce;
 
-			if bid_cut_amount > BigUint::zero() {
-				// send part as cut for contract owner
-				let owner = self.get_owner_address();
-				self.send().direct_dct_nft_via_transfer_exec(
-					&owner,
-					token,
-					nonce,
-					&bid_cut_amount,
-					self.data_or_empty_if_sc(&owner, b"bid cut for sold token"),
-				);
-			}
+			// send part as cut for contract owner
+			let owner = self.blockchain().get_owner_address();
+			self.transfer_dct(
+				&owner,
+				token_id,
+				nonce,
+				&bid_cut_amount,
+				b"bid cut for sold token",
+			);
 
 			// send part as royalties to creator
-			self.send().direct_dct_nft_via_transfer_exec(
+			self.transfer_dct(
 				&nft_info.creator,
-				token,
+				token_id,
 				nonce,
 				&creator_royalties,
-				self.data_or_empty_if_sc(&nft_info.creator, b"royalties for sold token"),
+				b"royalties for sold token",
 			);
 
 			// send rest of the bid to original owner
-			self.send().direct_dct_nft_via_transfer_exec(
+			self.transfer_dct(
 				&auction.original_owner,
-				token,
+				token_id,
 				nonce,
 				&seller_amount_to_send,
-				self.data_or_empty_if_sc(&auction.original_owner, b"sold token"),
+				b"sold token",
 			);
 
 			// send NFT to auction winner
-			self.send().direct_dct_nft_via_transfer_exec(
+			let _ = self.send().direct_dct_nft_via_transfer_exec(
 				&auction.current_winner,
 				nft_type.as_dct_identifier(),
 				nft_nonce,
@@ -245,7 +247,7 @@ pub trait DctNftMarketplace {
 			);
 		} else {
 			// return to original owner
-			self.send().direct_dct_nft_via_transfer_exec(
+			let _ = self.send().direct_dct_nft_via_transfer_exec(
 				&auction.original_owner,
 				nft_type.as_dct_identifier(),
 				nft_nonce,
@@ -257,11 +259,43 @@ pub trait DctNftMarketplace {
 		Ok(())
 	}
 
+	#[endpoint]
+	fn withdraw(&self, nft_type: TokenIdentifier, nft_nonce: u64) -> SCResult<()> {
+		require!(
+			self.is_already_up_for_auction(&nft_type, nft_nonce),
+			"Token is not up for auction"
+		);
+
+		let auction = self.auction_for_token(&nft_type, nft_nonce).get();
+		let caller = self.blockchain().get_caller();
+
+		require!(
+			auction.original_owner == caller,
+			"Only the original owner can withdraw"
+		);
+		require!(
+			auction.current_bid == 0,
+			"Can't withdraw, NFT already has bids"
+		);
+
+		self.auction_for_token(&nft_type, nft_nonce).clear();
+
+		let _ = self.send().direct_dct_nft_via_transfer_exec(
+			&caller,
+			nft_type.as_dct_identifier(),
+			nft_nonce,
+			&BigUint::from(NFT_AMOUNT),
+			self.data_or_empty_if_sc(&caller, b"returned token"),
+		);
+
+		Ok(())
+	}
+
 	// views
 
-	#[view(isUpForAuction)]
-	fn is_up_for_auction(&self, nft_type: &TokenIdentifier, nft_nonce: u64) -> bool {
-		self.auction_for_token(nft_type, nft_nonce).is_empty()
+	#[view(isAlreadyUpForAuction)]
+	fn is_already_up_for_auction(&self, nft_type: &TokenIdentifier, nft_nonce: u64) -> bool {
+		!self.auction_for_token(nft_type, nft_nonce).is_empty()
 	}
 
 	#[view(getPaymentTokenForAuctionedNft)]
@@ -270,7 +304,7 @@ pub trait DctNftMarketplace {
 		nft_type: &TokenIdentifier,
 		nft_nonce: u64,
 	) -> Option<DctToken> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			Some(
 				self.auction_for_token(nft_type, nft_nonce)
 					.get()
@@ -287,7 +321,7 @@ pub trait DctNftMarketplace {
 		nft_type: &TokenIdentifier,
 		nft_nonce: u64,
 	) -> Option<(BigUint, BigUint)> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			let auction = self.auction_for_token(nft_type, nft_nonce).get();
 
 			Some((auction.min_bid, auction.max_bid))
@@ -298,7 +332,7 @@ pub trait DctNftMarketplace {
 
 	#[view(getDeadline)]
 	fn get_deadline(&self, nft_type: &TokenIdentifier, nft_nonce: u64) -> Option<u64> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			Some(self.auction_for_token(nft_type, nft_nonce).get().deadline)
 		} else {
 			None
@@ -307,7 +341,7 @@ pub trait DctNftMarketplace {
 
 	#[view(getOriginalOwner)]
 	fn get_original_owner(&self, nft_type: &TokenIdentifier, nft_nonce: u64) -> Option<Address> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			Some(
 				self.auction_for_token(nft_type, nft_nonce)
 					.get()
@@ -324,7 +358,7 @@ pub trait DctNftMarketplace {
 		nft_type: &TokenIdentifier,
 		nft_nonce: u64,
 	) -> Option<BigUint> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			Some(
 				self.auction_for_token(nft_type, nft_nonce)
 					.get()
@@ -337,7 +371,7 @@ pub trait DctNftMarketplace {
 
 	#[view(getCurrentWinner)]
 	fn get_current_winner(&self, nft_type: &TokenIdentifier, nft_nonce: u64) -> Option<Address> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			Some(
 				self.auction_for_token(nft_type, nft_nonce)
 					.get()
@@ -354,7 +388,7 @@ pub trait DctNftMarketplace {
 		nft_type: &TokenIdentifier,
 		nft_nonce: u64,
 	) -> Option<Auction<BigUint>> {
-		if self.is_up_for_auction(nft_type, nft_nonce) {
+		if self.is_already_up_for_auction(nft_type, nft_nonce) {
 			Some(self.auction_for_token(nft_type, nft_nonce).get())
 		} else {
 			None
@@ -367,12 +401,43 @@ pub trait DctNftMarketplace {
 		total_amount * cut_percentage / BigUint::from(PERCENTAGE_TOTAL)
 	}
 
+	fn transfer_dct(
+		&self,
+		to: &Address,
+		token_id: &TokenIdentifier,
+		nonce: u64,
+		amount: &BigUint,
+		data: &'static [u8],
+	) {
+		// nonce 0 means fungible DCT or MOAX
+		if nonce == 0 {
+			self.send()
+				.direct(to, &token_id, amount, self.data_or_empty_if_sc(to, data));
+		} else {
+			let _ = self.send().direct_dct_nft_via_transfer_exec(
+				to,
+				token_id.as_dct_identifier(),
+				nonce,
+				amount,
+				self.data_or_empty_if_sc(to, data),
+			);
+		}
+	}
+
 	fn data_or_empty_if_sc(&self, dest: &Address, data: &'static [u8]) -> &[u8] {
-		if self.is_smart_contract(dest) {
+		if self.blockchain().is_smart_contract(dest) {
 			&[]
 		} else {
 			data
 		}
+	}
+
+	fn get_nft_info(&self, nft_type: &TokenIdentifier, nft_nonce: u64) -> DctTokenData<BigUint> {
+		self.blockchain().get_dct_token_data(
+			&self.blockchain().get_sc_address(),
+			nft_type.as_dct_identifier(),
+			nft_nonce,
+		)
 	}
 
 	// storage
