@@ -100,7 +100,7 @@ impl fmt::Display for DctInstances {
                 "".to_string()
             };
             write!(
-                &mut instance_buf,
+                instance_buf,
                 "{{
                     nonce: {},
                     balance: {},
