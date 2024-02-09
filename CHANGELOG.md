@@ -4,7 +4,19 @@ There are several crates in this repo, this changelog will keep track of all of 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [dharitri-wasm 0.9.2, dharitri-codec 0.3.4, denali 0.2.8] - 2022-02-22
+## [dharitri-wasm 0.9.4] - 2022-03-01
+- Disabled git tag/commit info in ABI due to issue in standard modules.
+
+## [dharitri-wasm 0.29.0] - 2022-03-01
+- Cleaned up allocator from modules: `DnsModule`, `DctModule`, `FeaturesModule`, `PauseModule`, `UsersModule`.
+- Crypto API managed wrapper over legacy VM endpoints.
+- Managed multi-value types refactor and rename.
+- `ManagedVec` - `remove`, `contains`, `find`.
+- `ManagedVecItem` derive for simple enums.
+- Feature `cb_closure_managed_deser` replaced by `cb_closure_unmanaged_deser`, managed implementation is now the default.
+- Git tag/commit info in ABI.
+
+## [dharitri-wasm 0.28.0, dharitri-codec 0.3.4, denali 0.2.8] - 2022-02-22
 - Major dharitri-codec refactor:
 	- Redesigned the error handling for single value encoding
 	- Introduced multi-value encoding, which replaces the previous endpoint argument and result mechanisms
@@ -301,7 +313,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ### Minor features
 - SingleValueMapper redesigned for easier use. It no longer keeps the storage value cached.
 
-## [dharitri-wasm 0.1.2] - 2021-02-25
+## [dharitri-wasm 0.12.0] - 2021-02-25
 - Reorganized DCT and MOAX direct send api.
 - New async call syntax
 	- redesigned contract proxies
@@ -476,7 +488,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - imports macro
 - OtherContractHandle implementation
 
-## [dharitri-wasm 0.4.4] - 2020-05-19
+## [dharitri-wasm 0.9.4] - 2020-05-19
 - Serialization fixes for small ints
 - `get_cumulated_validator_rewards` hook
 
@@ -485,7 +497,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - `#[var_args]`
 - Call data serialization refactoring
 
-## [dharitri-wasm 0.9.2] - 2020-05-07
+## [dharitri-wasm 0.4.2] - 2020-05-07
 - Tutorial setup (later abandoned)
 
 ## [dharitri-wasm 0.4.1] - 2020-05-06
