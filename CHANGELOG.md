@@ -4,7 +4,19 @@ There are several crates in this repo, this changelog will keep track of all of 
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## [dharitri-wasm 0.10.4, dharitri-codec 0.13.0, denali 0.3.5] - 2022-09-20
+## Unreleased
+#### (Next release must be minor and include dharitri-codec)
+- dharitri-codec refactor: removed `TopEncodeNoErr`, `NestedEncodeNoErr` and `TypeInfo`
+
+## [dharitri-wasm 0.10.6] - 2022-11-01
+- Deprecated `ContractCall` `execute_on_dest_context_ignore_result` method, since it is currently redundant.
+
+## [dharitri-wasm 0.36.0, dharitri-codec 0.3.9] - 2022-10-13
+- `DctTokenPayment` legacy decode: objects encoded by older versions of the framework can now also be decoded, if flag `dct-token-payment-legacy-decode` is active.
+- Codec `NestedDecodeInput` new  `peek_into` method.
+- `FungibleTokenMapper` caches the token identifier.
+
+## [dharitri-wasm 0.35.0, dharitri-codec 0.13.0, denali 0.3.5] - 2022-09-20
 - Rust interactor snippet generator.
 - Added some missing substitution rules in the contract preprocessor.
 - Allow single zero byte when top-decoding Option::None.
@@ -18,7 +30,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Safer BigUint/BigInt conversions
 - Added and published `price-aggregator` and `wmoax-swap` core contracts.
 
-## [dharitri-wasm 0.34.0, dharitri-codec 0.12.0, denali 0.16.0, dharitri-interact-snippets 0.0.3] - 2022-07-08
+## [dharitri-wasm 0.34.0, dharitri-codec 0.12.0, denali 0.16.0, dharitri-interact-snippets 0.1.0] - 2022-07-08
 - Major refactor of the denali-rs infrastructure.
 	- High-level Denali objects moved to dharitri-wasm-debug;
 	- The `denali` crate no longer depends on `dharitri-wasm-debug` (as originally intended and implemented);
@@ -502,7 +514,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Storage/argument/result traits completely redesigned, simplified and optimized
 - Completely ditched the approach from dharitri-wasm 0.8.0.
 
-## [dharitri-wasm 0.8.0, dharitri-codec 0.3.8] - 2020-11-02
+## [dharitri-wasm 0.8.0, dharitri-codec 0.2.0] - 2020-11-02
 - Was the first version to split Encode/Decode into TopEncode/NestedEncode/TopDecode/NestedDecode
 - Attempted to optimize the serializer to use "fast exit" closures. It worked, but the resulting bytecode size was not satisfactory. Even though it was completely replaced and never got to be used, it historically remains the solution of this release.
 - Some of the storage/argument/result trait refactorings, survived.
@@ -537,7 +549,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - H256 now boxed
 - SCResult is_ok, is_err
 
-## [dharitri-wasm 0.10.4, dharitri-codec 0.1.1] - 2020-07-18
+## [dharitri-wasm 0.5.4, dharitri-codec 0.1.1] - 2020-07-18
 - MultiResultVec - new, from_iter
 - EncodeError type
 
