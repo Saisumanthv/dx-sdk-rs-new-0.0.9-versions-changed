@@ -19,7 +19,7 @@ panic = "abort"
 path = ".."
 
 [dependencies.dharitri-sc-wasm-adapter]
-version = "0.39.2"
+version = "0.39.4"
 path = "../../../../../framework/wasm-adapter"
 
 [workspace]
