@@ -3,8 +3,8 @@
 /target/
 */target/
 
-# The moapy output
+# The mxpy output
 output
 
 # Denali test trace
-denali/trace*.scen.json
+scenarios/trace*.scen.json

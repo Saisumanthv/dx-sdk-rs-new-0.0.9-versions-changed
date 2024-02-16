@@ -1,13 +1,13 @@
 [package]
 name = "order-book-pair"
 version = "0.0.0"
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]
 path = "src/lib.rs"
 
-[dependencies.dharitri-wasm]
-version = "0.10.7"
-path = "../../../../dharitri-wasm"
+[dependencies.dharitri-sc]
+version = "0.39.2"
+path = "../../../../framework/base"
 features = ["alloc"]

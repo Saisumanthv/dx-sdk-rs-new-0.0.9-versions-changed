@@ -1,5 +1,5 @@
-dharitri_wasm::imports!();
-dharitri_wasm::derive_imports!();
+dharitri_sc::imports!();
+dharitri_sc::derive_imports!();
 
 #[derive(TopEncode, TopDecode, NestedEncode, NestedDecode, TypeAbi, Clone)]
 pub enum QueuedCallType {
@@ -20,7 +20,7 @@ pub struct QueuedCall<M: ManagedTypeApi> {
 /// Testing multiple calls per transaction, cascading on.
 ///
 /// TODO: write actual tests with these.
-#[dharitri_wasm::module]
+#[dharitri_sc::module]
 pub trait ForwarderQueuedCallModule {
     #[proxy]
     fn self_proxy(&self, to: ManagedAddress) -> crate::Proxy<Self::Api>;
@@ -66,11 +66,11 @@ pub trait ForwarderQueuedCallModule {
             let contract_call = self
                 .self_proxy(call.to)
                 .forward_queued_calls(max_call_depth - 1)
-                .with_moax_or_single_dct_token_transfer(
+                .with_moax_or_single_dct_transfer((
                     call.payment_token,
                     call.payment_nonce,
                     call.payment_amount,
-                );
+                ));
             match call.call_type {
                 QueuedCallType::Sync => {
                     contract_call.execute_on_dest_context::<()>();

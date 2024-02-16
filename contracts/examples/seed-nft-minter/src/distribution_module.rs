@@ -1,5 +1,5 @@
-dharitri_wasm::imports!();
-dharitri_wasm::derive_imports!();
+dharitri_sc::imports!();
+dharitri_sc::derive_imports!();
 
 pub const MAX_DISTRIBUTION_PERCENTAGE: u64 = 100_000; // 100%
 
@@ -11,7 +11,7 @@ pub struct Distribution<M: ManagedTypeApi> {
     pub gas_limit: u64,
 }
 
-#[dharitri_wasm::module]
+#[dharitri_sc::module]
 pub trait DistributionModule {
     fn init_distribution(&self, distribution: ManagedVec<Distribution<Self::Api>>) {
         self.validate_distribution(&distribution);
@@ -35,11 +35,7 @@ pub trait DistributionModule {
             }
             self.send()
                 .contract_call::<IgnoreValue>(distribution.address, distribution.endpoint)
-                .with_moax_or_single_dct_token_transfer(
-                    token_id.clone(),
-                    token_nonce,
-                    payment_amount,
-                )
+                .with_moax_or_single_dct_transfer((token_id.clone(), token_nonce, payment_amount))
                 .with_gas_limit(distribution.gas_limit)
                 .transfer_execute();
         }

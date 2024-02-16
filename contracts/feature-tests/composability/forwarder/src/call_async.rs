@@ -1,5 +1,5 @@
-dharitri_wasm::imports!();
-dharitri_wasm::derive_imports!();
+dharitri_sc::imports!();
+dharitri_sc::derive_imports!();
 
 #[derive(TopEncode, TopDecode, TypeAbi)]
 pub struct CallbackData<M: ManagedTypeApi> {
@@ -12,7 +12,7 @@ pub struct CallbackData<M: ManagedTypeApi> {
 
 const PERCENTAGE_TOTAL: u64 = 10_000; // 100%
 
-#[dharitri_wasm::module]
+#[dharitri_sc::module]
 pub trait ForwarderAsyncCallModule {
     #[proxy]
     fn vault_proxy(&self) -> vault::Proxy<Self::Api>;
@@ -56,11 +56,11 @@ pub trait ForwarderAsyncCallModule {
     #[endpoint]
     #[payable("*")]
     fn forward_async_accept_funds(&self, to: ManagedAddress) {
-        let (token, token_nonce, payment) = self.call_value().moax_or_single_dct().into_tuple();
+        let payment = self.call_value().moax_or_single_dct();
         self.vault_proxy()
             .contract(to)
             .accept_funds()
-            .with_moax_or_single_dct_token_transfer(token, token_nonce, payment)
+            .with_moax_or_single_dct_transfer(payment)
             .async_call()
             .call_and_exit()
     }
@@ -73,11 +73,11 @@ pub trait ForwarderAsyncCallModule {
         self.vault_proxy()
             .contract(to)
             .accept_funds()
-            .with_moax_or_single_dct_token_transfer(
+            .with_moax_or_single_dct_transfer((
                 payment.token_identifier,
                 payment.token_nonce,
                 half_payment,
-            )
+            ))
             .async_call()
             .call_and_exit()
     }
@@ -87,16 +87,16 @@ pub trait ForwarderAsyncCallModule {
     fn forward_async_accept_funds_with_fees(&self, to: ManagedAddress, percentage_fees: BigUint) {
         let payment = self.call_value().moax_or_single_dct();
         let fees = &payment.amount * &percentage_fees / PERCENTAGE_TOTAL;
-        let amount_to_send = payment.amount - fees;
+        let amount_to_send = &payment.amount - &fees;
 
         self.vault_proxy()
             .contract(to)
             .accept_funds()
-            .with_moax_or_single_dct_token_transfer(
+            .with_moax_or_single_dct_transfer((
                 payment.token_identifier,
                 payment.token_nonce,
                 amount_to_send,
-            )
+            ))
             .async_call()
             .call_and_exit()
     }
@@ -149,7 +149,7 @@ pub trait ForwarderAsyncCallModule {
         self.vault_proxy()
             .contract(to.clone())
             .accept_funds()
-            .with_moax_or_single_dct_token_transfer(token_identifier.clone(), 0, amount.clone())
+            .with_moax_or_single_dct_transfer((token_identifier.clone(), 0, amount.clone()))
             .async_call()
             .with_callback(
                 self.callbacks()
@@ -168,7 +168,7 @@ pub trait ForwarderAsyncCallModule {
         self.vault_proxy()
             .contract(to.clone())
             .accept_funds()
-            .with_moax_or_single_dct_token_transfer(token_identifier.clone(), 0, cb_amount.clone())
+            .with_moax_or_single_dct_transfer((token_identifier.clone(), 0, cb_amount.clone()))
             .async_call()
             .call_and_exit()
     }

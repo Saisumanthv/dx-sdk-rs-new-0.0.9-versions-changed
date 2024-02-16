@@ -13,8 +13,8 @@
             "gitVersion": "<git version here>"
         },
         "framework": {
-            "name": "dharitri-wasm",
-            "version": "0.10.7"
+            "name": "dharitri-sc",
+            "version": "0.39.2"
         }
     },
     "docs": [

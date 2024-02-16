@@ -3,7 +3,7 @@ use crate::{
     user_role::UserRole,
 };
 
-dharitri_wasm::imports!();
+dharitri_sc::imports!();
 
 /// Gas required to finish transaction after transfer-execute.
 const PERFORM_ACTION_FINISH_GAS: u64 = 300_000;
@@ -13,7 +13,7 @@ fn usize_add_isize(value: &mut usize, delta: isize) {
 }
 
 /// Contains all events that can be emitted by the contract.
-#[dharitri_wasm::module]
+#[dharitri_sc::module]
 pub trait MultisigPerformModule:
     crate::multisig_state::MultisigStateModule + crate::multisig_events::MultisigEventsModule
 {
@@ -192,7 +192,7 @@ pub trait MultisigPerformModule:
                 self.send()
                     .contract_call::<()>(call_data.to, call_data.endpoint_name)
                     .with_moax_transfer(call_data.moax_amount)
-                    .with_arguments_raw(call_data.arguments.into())
+                    .with_raw_arguments(call_data.arguments.into())
                     .async_call()
                     .with_callback(self.callbacks().perform_async_call_callback())
                     .call_and_exit()

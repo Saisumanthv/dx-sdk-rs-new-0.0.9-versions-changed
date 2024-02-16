@@ -1,10 +1,11 @@
-use dharitri_wasm::{
-    dharitri_codec::multi_types::MultiValue2,
+use dharitri_sc::{
+    codec::multi_types::MultiValue2,
     types::{BigUint, MoaxOrDctTokenIdentifier, MultiValueEncoded, OperationCompletionStatus},
 };
-use dharitri_wasm_debug::{
-    managed_token_id, rust_biguint, testing_framework::BlockchainStateWrapper,
-    tx_mock::TxInputDCT, DebugApi,
+use dharitri_sc_scenario::{
+    managed_token_id, rust_biguint,
+    testing_framework::{BlockchainStateWrapper, TxTokenTransfer},
+    DebugApi,
 };
 use rewards_distribution::RewardsDistribution as _;
 mod mock_seed_nft_minter;
@@ -149,9 +150,9 @@ fn test_raffle_and_claim() {
     // claim the rewards
 
     let token_identifier = nft_token_id.clone().to_boxed_bytes().into_vec();
-    let nft_payments: Vec<TxInputDCT> = nft_nonces
+    let nft_payments: Vec<TxTokenTransfer> = nft_nonces
         .iter()
-        .map(|nonce| TxInputDCT {
+        .map(|nonce| TxTokenTransfer {
             token_identifier: token_identifier.clone(),
             nonce: *nonce,
             value: rust_biguint!(1),

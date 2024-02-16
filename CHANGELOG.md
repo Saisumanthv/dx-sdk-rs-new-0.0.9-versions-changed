@@ -1,10 +1,64 @@
 # Change Log
 
-There are several crates in this repo, this changelog will keep track of all of them.
+This file contains a centralizes a trace of all published crate versions, with their changes in short.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## Versioning the crates
 
-## [dharitri-wasm 0.10.7, dharitri-codec 0.4.0] - 2022-12-09
+The `mx-sdk-rs` repo contains many crates, grouped into several families. Crates in these families always have the same version with one another.
+
+For brevity, the changelog will only mention a short version of their name.
+
+They are:
+- `dharitri-sc`, in short `sc`, the smart contract framework, 6 crates + 3 for contracts/modules:
+	- `dharitri-sc`
+    - `dharitri-sc-derive`
+    - `dharitri-sc-meta`
+    - `dharitri-sc-scenario`
+    - `dharitri-sc-snippets`
+    - `dharitri-sc-wasm-adapter`
+    - `dharitri-sc-modules` - *standard contract modules*
+	- `dharitri-price-aggregator-sc` - *core contract*
+	- `dharitri-wmoax-swap-sc` - *core contract*
+- `dharitri-sc-codec`, in short `codec`, the serializer/deserializer, 2 crates:
+	- `dharitri-sc-codec`
+	- `dharitri-sc-codec-derive`
+- `dharitri-chain-vm`, in short `vm`, a Rust VM implementation, 1 crate.
+- `dharitri-chain-scenario-format`, in short `scenario-format`, scenario JSON serializer/deserializer, 1 crate.
+- `dharitri-sdk`, in short `sdk`, allows communication with the chain(s), 1 crate.
+
+## [sc 0.39.2, vm 0.1.2] - 2023-01-19
+- `dharitri-sc-meta` improvements:
+	- `all` command that allows calling all contract meta crates in a folder;
+	- `upgrade` also re-generates wasm crates after reaching 0.39.1.
+- Cleaned up dependencies.
+
+## [sc 0.39.1, codec 0.17.1, vm 0.1.1, scenario-format 0.19.1, sdk 0.1.1] - 2023-01-18
+- `dharitri-sc-meta` can be installed as a standalone tool (`sc-meta`), and used to automatically upgrade contracts.
+- Many depedencies updates across the repo.
+- Updated readme files.
+
+## [sc 0.39.0, codec 0.17.0, vm 0.1.0, scenario-format 0.19.0, sdk 0.1.0] - 2023-01-12
+- All crates were renamed, in line with the Dharitri brand.
+- New crate: `dharitri-chain-vm`, extracted from the old debug crate.
+- New crate: `dharitri-sdk`, adapted from a solution proposed by the community.
+- A `ScenarioWorld` facade, for contract tests.
+- The multi-contract build system.
+- The meta crate supports `twiggy` post-processing, this is a tool to analyze contract size and investigate bloat in the binaries.
+- Dropped crate: `dharitri-wasm-output`. There is no equivalent crate, its job was passed to the individual `wasm` crates.
+- `ManagedVec` supports sorting and deduplication.
+- `migrateUserName` builtin function mock.
+
+## [dharitri-wasm 0.38.0, dharitri-codec 0.16.0, denali 0.18.0] - 2022-12-15
+- `ContractCall` refactor. Building a contract call comes with harder compile-time constraints. This also reduces compiled code size.
+- `ContractBase` supertrait can be now stated explicitly for contract and module traits.
+- Debugger:
+	- Callback payment is now set correctly.
+	- Function names are represented internally as strings instead of bytes, which aids debugging.
+- Removed the `ei-1-2` feature, which was guarding the newer VM functions. These functions are in the mainnet, so this feature is no longer needed.
+- New utility functions: `self.send().dct_local_burn_multi(...`, `self.blockchain().get_token_attributes(...)`.
+- Updated all crates to Rust 2021.
+
+## [dharitri-wasm 0.37.0, dharitri-codec 0.15.0] - 2022-12-09
 - Multi-contract build system:
 	- build system refactor;
 	- `multicontract.toml` config system with labels,
@@ -16,13 +70,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 	- callback optimizations.
 - `dharitri-codec` refactor: removed `TopEncodeNoErr`, `NestedEncodeNoErr` and `TypeInfo`
 - System SC proxy: added support for `controlChanges` endpoint and transfer create role (from community).
-- Storage mappers can read from another contract.
 - Module updates:
 	- `MergedTokenInstances` module;
 	- Governance module improvements;
 	- `set_if_empty` for FungibleTokenMapper and NonFungibleTokenMapper.
 - `IntoMultiValue` trait.
 - Storage mapper improvements:
+	- Storage mappers can read from another contract.
 	- `BiDiMapper` improvements;
 	- Fixed missing substitution rules for `FungibleTokenMapper`, `NonFungibleTokenMapper`, `UniqueIdMapper`, `BiDiMapper`, `WhitelistMapper`, `RandomnessSource`;
 	- Added `take` and `replace` methods for `SingleValueMapper`;
@@ -36,7 +90,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Codec `NestedDecodeInput` new  `peek_into` method.
 - `FungibleTokenMapper` caches the token identifier.
 
-## [dharitri-wasm 0.35.0, dharitri-codec 0.13.0, denali 0.3.5] - 2022-09-20
+## [dharitri-wasm 0.35.0, dharitri-codec 0.13.0, denali 0.17.0] - 2022-09-20
 - Rust interactor snippet generator.
 - Added some missing substitution rules in the contract preprocessor.
 - Allow single zero byte when top-decoding Option::None.

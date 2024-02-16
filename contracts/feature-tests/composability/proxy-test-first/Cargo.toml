@@ -2,28 +2,28 @@
 name = "proxy-test-first"
 version = "0.0.0"
 authors = ["Andrei Marinica <andrei.marinica@dharitri.com>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]
 path = "src/proxy-test-first.rs"
 
 [features]
-ei-unmanaged = ["dharitri-wasm/ei-unmanaged"]
+ei-unmanaged = ["dharitri-sc/ei-unmanaged"]
 
 [dependencies]
 hex-literal = "0.3.1"
 
-[dependencies.dharitri-wasm]
-version = "0.10.7"
-path = "../../../../dharitri-wasm"
+[dependencies.dharitri-sc]
+version = "0.39.2"
+path = "../../../../framework/base"
 features = ["alloc"]
 
-[dependencies.dharitri-wasm-node]
-version = "0.10.7"
-path = "../../../../dharitri-wasm-node"
+[dependencies.dharitri-sc-wasm-adapter]
+version = "0.39.2"
+path = "../../../../framework/wasm-adapter"
 optional = true
 
-[dev-dependencies.dharitri-wasm-debug]
-version = "0.10.7"
-path = "../../../../dharitri-wasm-debug"
+[dev-dependencies.dharitri-sc-scenario]
+version = "0.39.2"
+path = "../../../../framework/scenario"

@@ -2,7 +2,7 @@
 name = "kitty-auction"
 version = "0.0.0"
 authors = [ "dorin-iancu <dorin.iancu@dharitri.com>",]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]
@@ -16,10 +16,10 @@ path = "../common/kitty"
 version = "0.0.0"
 path = "../kitty-ownership"
 
-[dependencies.dharitri-wasm]
-version = "0.10.7"
-path = "../../../../dharitri-wasm"
+[dependencies.dharitri-sc]
+version = "0.39.2"
+path = "../../../../framework/base"
 
-[dev-dependencies.dharitri-wasm-debug]
-version = "0.10.7"
-path = "../../../../dharitri-wasm-debug"
+[dev-dependencies.dharitri-sc-scenario]
+version = "0.39.2"
+path = "../../../../framework/scenario"

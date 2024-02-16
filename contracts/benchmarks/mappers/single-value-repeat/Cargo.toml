@@ -2,7 +2,7 @@
 name = "single-value-repeat"
 version = "0.0.0"
 authors = ["Claudiu-Marcel Bruda <claudiu.bruda@dharitri.com>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 [lib]
@@ -12,10 +12,10 @@ path = "src/single_value_repeat.rs"
 path = "../benchmark-common"
 
 
-[dependencies.dharitri-wasm]
-version = "0.10.7"
-path = "../../../../dharitri-wasm"
+[dependencies.dharitri-sc]
+version = "0.39.2"
+path = "../../../../framework/base"
 
-[dev-dependencies.dharitri-wasm-debug]
-version = "0.10.7"
-path = "../../../../dharitri-wasm-debug"
+[dev-dependencies.dharitri-sc-scenario]
+version = "0.39.2"
+path = "../../../../framework/scenario"

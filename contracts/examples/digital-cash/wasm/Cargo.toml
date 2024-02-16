@@ -23,11 +23,6 @@ panic = "abort"
 [dependencies.digital-cash]
 path = ".."
 
-[dependencies.dharitri-wasm-node]
-version = "0.10.7"
-path = "../../../../dharitri-wasm-node"
-
-[dependencies.dharitri-wasm-output]
-version = "0.10.7"
-features = ["wasm-output-mode"]
-path = "../../../../dharitri-wasm-output"
+[dependencies.dharitri-sc-wasm-adapter]
+version = "0.39.2"
+path = "../../../../framework/wasm-adapter"
