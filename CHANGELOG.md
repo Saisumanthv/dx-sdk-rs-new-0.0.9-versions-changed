@@ -26,6 +26,9 @@ They are:
 - `dharitri-chain-scenario-format`, in short `scenario-format`, scenario JSON serializer/deserializer, 1 crate.
 - `dharitri-sdk`, in short `sdk`, allows communication with the chain(s), 1 crate.
 
+## [sc 0.39.8, vm 0.1.8] - 2023-03-29
+- `dharitri-sc-meta` `test-gen` command: generates Rust integration tests based on scenarios present in the `scenarios` folder.
+ - `UnorderedSetMapper` `swap_indexes` method.
 
 ## [sc 0.39.7, vm 0.1.7] - 2023-03-18
  - `TokenIdentifier` `ticker` method.
