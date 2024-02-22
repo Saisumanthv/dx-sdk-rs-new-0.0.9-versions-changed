@@ -26,6 +26,30 @@ They are:
 - `dharitri-chain-scenario-format`, in short `scenario-format`, scenario JSON serializer/deserializer, 1 crate.
 - `dharitri-sdk`, in short `sdk`, allows communication with the chain(s), 1 crate.
 
+## [sc 0.45.0, vm 0.7.0, scenario-format 0.21.0, sdk 0.3.0] - 2023-11-24
+- Replicated VM 1.5 in the Rust VM. This includes support for:
+	- promises,
+	- back-transfers,
+	- modified event logs.
+- New endpoint annotation, `#[upgrade]`. Contract variants with upgrade endpoint, but without init now allowed.
+- Build system:
+	- `wasm` crates now fully generated based on data from `sc-config.toml` and root `Cargo.toml`.
+	- Setting wasm target dir automatically, if not specified, based on workspace.
+
+## [sc 0.44.0, vm 0.6.0] - 2023-11-03
+- Back-transfer:
+	- API support in framework (not yet implemented in the Rust VM);
+	- Feature flag: `"back-transfers"`;
+	- EI updated.
+- DCT attribute ABI annotation and generator.
+- Multiple var-args disallowed, unless annotating endpoint with `#[allow_multiple_var_args]`.
+- Build system updates:
+	- `multicontract.toml` renamed to `sc-config.toml`;
+	- `add-unlabelled` default true.
+- New `FunctionCall` object & refactoring. Can be used as multi-value to pass contract call info to contracts.
+- `AddressToId` storage mapper.
+
+
 ## [sc 0.43.5] - 2023-10-16
 - Meta crate: removed external dependencies to `wasm2wat` and `wasm-objdump`, replaces with internal implementation.
 - NFT subscription module.
