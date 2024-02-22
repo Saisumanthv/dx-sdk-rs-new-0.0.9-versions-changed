@@ -4,7 +4,7 @@ This file contains a centralizes a trace of all published crate versions, with t
 
 ## Versioning the crates
 
-The `mx-sdk-rs` repo contains many crates, grouped into several families. Crates in these families always have the same version with one another.
+The `dx-sdk-rs-new` repo contains many crates, grouped into several families. Crates in these families always have the same version with one another.
 
 For brevity, the changelog will only mention a short version of their name.
 
@@ -25,6 +25,26 @@ They are:
 - `dharitri-chain-vm`, in short `vm`, a Rust VM implementation, 1 crate.
 - `dharitri-chain-scenario-format`, in short `scenario-format`, scenario JSON serializer/deserializer, 1 crate.
 - `dharitri-sdk`, in short `sdk`, allows communication with the chain(s), 1 crate.
+
+## [sc 0.43.4] - 2023-09-18
+- Bugfix in `sc-meta`: fixed `--locked argument` in `all` command.
+- Template fix: added `dharitri.json` files.
+- Testing framework: check NFT balances and attributes.
+
+## [sc 0.43.3, vm 0.5.2] - 2023-09-08
+- Added several new methods in the `SendWrapper`, which perform MOAX & DCT transfers but don't do anything if the value is zero.
+- Added the `DeleteUsername` builtin function to the VM.
+- Minor fixes in API wrapper constructors.
+
+## [sc 0.43.2] - 2023-08-18
+- Template tool tag argument validation bugfix.
+
+## [sc 0.43.1, vm 0.5.1] - 2023-08-18
+- Template tool improvements:
+	- Ability to specify for which framework version to download (based on git tag). The first allowed version is 0.43.0.
+	- Ability to specify path where to create new contract.
+	- Various bugfixes.
+- VM implementation for `get_shard_of_address` VM hook.
 
 ## [sc 0.43.0, codec 0.18.1, vm 0.5.0] - 2023-08-16
 - Fixed a rustc compatibility issue when building contracts. The meta crate looks at the rustc version when generating the wasm crate code:

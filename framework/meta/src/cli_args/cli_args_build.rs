@@ -119,6 +119,9 @@ impl BuildArgs {
 impl CliArgsToRaw for BuildArgs {
     fn to_raw(&self) -> Vec<String> {
         let mut raw = Vec::new();
+        if self.locked {
+            raw.push("--locked".to_string());
+        }
         if self.wasm_symbols {
             raw.push("--wasm-symbols".to_string());
         }
@@ -146,7 +149,8 @@ impl CliArgsToRaw for BuildArgs {
             raw.push("--no-imports".to_string());
         }
         if let Some(target_dir_wasm) = &self.target_dir_wasm {
-            raw.push("--target-dir-wasm".to_string());
+            // not using --target-dir-wasm, for backward compatibility
+            raw.push("--target-dir".to_string());
             raw.push(target_dir_wasm.clone());
         }
         if self.twiggy_top {
@@ -214,7 +218,8 @@ impl CliArgsToRaw for BuildDbgArgs {
     fn to_raw(&self) -> Vec<String> {
         let mut raw = Vec::new();
         if let Some(target_dir_wasm) = &self.target_dir_wasm {
-            raw.push("--target-dir-wasm".to_string());
+            // not using --target-dir-wasm, for backward compatibility
+            raw.push("--target-dir".to_string());
             raw.push(target_dir_wasm.clone());
         }
         if self.twiggy_top {
@@ -259,7 +264,8 @@ impl CliArgsToRaw for TwiggyArgs {
     fn to_raw(&self) -> Vec<String> {
         let mut raw = Vec::new();
         if let Some(target_dir) = &self.target_dir_wasm {
-            raw.push("--target-dir-wasm".to_string());
+            // not using --target-dir-wasm, for backward compatibility
+            raw.push("--target-dir".to_string());
             raw.push(target_dir.clone());
         }
         raw
