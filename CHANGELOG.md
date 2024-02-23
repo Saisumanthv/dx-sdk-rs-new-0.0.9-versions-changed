@@ -26,6 +26,17 @@ They are:
 - `dharitri-chain-scenario-format`, in short `scenario-format`, scenario JSON serializer/deserializer, 1 crate.
 - `dharitri-sdk`, in short `sdk`, allows communication with the chain(s), 1 crate.
 
+## [sc 0.45.2, codec 0.18.3, vm 0.7.1, scenario-format 0.21.1, sdk 0.3.1] - 2023-12-18
+- Updated framework dependencies to the latest versions: syn, bitflags, wasmparser, base64, sha2, sha3, itertools, hmac, pem, pbkdf2, etc.
+- `sc-meta` improvements:
+	- `overflow-checks` field in `sc-config.toml`;
+	- Upgrade: new `--no-check` flag, which disables the compile check after major version upgrades;
+	- Template: `wasm` crates no longer copied for new versions; retroactively patched missing `dharitri.json` file for older versions.
+
+## [sc 0.45.1, codec 0.18.2] - 2023-11-24
+- Fixed sc-meta standalone install backwards compatibility.
+- Better hygiene in codec derive.
+
 ## [sc 0.45.0, vm 0.7.0, scenario-format 0.21.0, sdk 0.3.0] - 2023-11-24
 - Replicated VM 1.5 in the Rust VM. This includes support for:
 	- promises,

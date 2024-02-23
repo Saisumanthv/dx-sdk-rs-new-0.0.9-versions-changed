@@ -10,10 +10,10 @@ path = "src/vault.rs"
 
 
 [dependencies.dharitri-sc]
-version = "0.45.0"
+version = "0.45.2"
 path = "../../../../framework/base"
 features = ["promises"]
 
 [dev-dependencies.dharitri-sc-scenario]
-version = "0.45.0"
+version = "0.45.2"
 path = "../../../../framework/scenario"
